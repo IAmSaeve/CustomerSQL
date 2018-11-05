@@ -54,7 +54,7 @@ namespace SQLRestCustomerService.Controllers
         public Order Get(int id)
         {
             Order result = null;
-            var sql = $"SELECT * FROM Orders WHERE id = '{id}'";
+            var sql = $"SELECT * FROM Orders WHERE Orderid = '{id}'";
             // var db = new MySqlConnection(connection);
             var db = new SqlConnection(connection);
             db.Open();
@@ -74,6 +74,34 @@ namespace SQLRestCustomerService.Controllers
             return result;
         }
 
+        // GET: api/Order/Customer/1
+        [HttpGet("/api/Order/Customer/{id}")]
+        public List<OrderForCustomer> GetCustomersOrders([FromRoute]int id)
+        {
+            var result = new List<OrderForCustomer>();
+            var sql = "SELECT Kundeid, FirstName, LastName, Orderid " +
+                        "FROM Orders " +
+                        "RIGHT JOIN Customer C on Orders.Kundeid = C.Id " + 
+                        $"WHERE C.Id = '{id}'";
+            // var db = new MySqlConnection(connection);
+            var db = new SqlConnection(connection);
+            db.Open();
+
+            // var command = new MySqlCommand(sql, db);
+            var command = new SqlCommand(sql, db);
+            var reader = command.ExecuteReader();
+
+            if (reader.HasRows)
+            {
+                while (reader.Read())
+                {
+                    result.Add(new OrderForCustomer(reader.GetInt32(0), reader.GetInt32(3), reader.GetString(1) + " " + reader.GetString(2)));
+                }
+            }
+            db.Dispose();
+            return result;
+        }
+
         // POST api/Order
         [HttpPost]
         public void InsertOrder(Order Order)
@@ -82,38 +110,6 @@ namespace SQLRestCustomerService.Controllers
             $"VALUES ('{Order.Kundeid}', '{Order.Dato}')";
             // var db = new MySqlConnection(connection);
             var db = new SqlConnection(connection);
-            db.Open();
-
-            // var command = new MySqlCommand(sql, db);
-            var command = new SqlCommand(sql, db);
-            var reader = command.ExecuteReader();
-            db.Dispose();
-        }
-
-        // PUT api/Orders/
-        [HttpPut("{id}")]
-        public void UpdateOrder(int id, [FromBody] Order Order)
-        {
-            var sql = $"UPDATE Orders SET Kundeid = '{Order.Kundeid}', " +
-            $"Dato = '{Order.Dato}' WHERE id='{id}'";
-            // var db = new MySqlConnection(connection);
-            var db = new SqlConnection(connection);
-            db.Open();
-
-            // var command = new MySqlCommand(sql, db);
-            var command = new SqlCommand(sql, db);
-            var reader = command.ExecuteReader();
-            db.Dispose();
-        }
-
-        // DELETE api/Order/5
-        [HttpDelete("{id}")]
-        public void DeleteOrder(int id)
-        {
-            var sql = $"DELETE FROM Orders WHERE id='{id}'";
-            // var db = new MySqlConnection(connection);
-            var db = new SqlConnection(connection);
-
             db.Open();
 
             // var command = new MySqlCommand(sql, db);
